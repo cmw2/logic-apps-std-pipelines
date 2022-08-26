@@ -1,0 +1,39 @@
+# IaC Logic App resources deployment template
+
+parameters:
+- name: serviceConnection
+  type: string
+- name: bicepFilePath
+  type: string
+
+steps:
+- task: AzureCLI@2
+  displayName: 'Deploy $(envName) Logic App Infra'
+  inputs:
+    azureSubscription: ${{ parameters.serviceConnection }}
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      az group create --name $(resourceGroupName) --location $(location)
+      az deployment group create \
+        --resource-group $(resourceGroupName) \
+        --template-file ${{ parameters.bicepFilePath }} \
+        --what-if \
+        --parameters \
+        location=$(location) \
+        environmentName=$(envName) \
+        projectName=$(projectName) \
+        storageName=$(storageName) \
+        appPlanName=$(appPlanName) \
+        logAnalyticsName=$(logAnalyticsName) \
+        appInsName=$(appInsName) \
+        logicAppName=$(logicAppName)
+
+- task: ARM Outputs@6
+  displayName: 'ARM Outputs'
+  inputs:
+    ConnectedServiceNameSelector: 'ConnectedServiceNameARM'
+    ConnectedServiceNameARM: ${{ parameters.serviceConnection }}
+    resourceGroupName: $(resourceGroupName)
+    whenLastDeploymentIsFailed: 'fail'
+

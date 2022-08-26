@@ -1,0 +1,142 @@
+trigger: none
+
+resources:
+  pipelines:
+  - pipeline: cipipeline
+    source: 'LogicAppDemo-CI'
+    trigger:
+      branches:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables: 
+  location: 'centralus'
+  tenantId: '72xxxxxxxxxxxxxxxxxxxxxb47'
+  pathToARMTemplates: '$(Pipeline.Workspace)/cipipeline/output/'
+  pathToLogicApp: '$(Pipeline.Workspace)/cipipeline/output/logicapp.zip'
+  pathToAppSettingsPwsh: '$(Pipeline.Workspace)/cipipeline/output/api-connections-set-appsettings.ps1'
+
+stages:
+- stage: TEST
+  displayName: 'TEST Deployment'
+  variables:
+    envName: 'test'
+    azureServiceConnection: 'Service Connection Name Here'
+    azureSubscription: '6f4xxxxxxxxxxxxxxxxxxxx391'
+    resourceGroupName: 'xxxxxxxxxxxx-test-rg'
+    logicAppName: 'xxxxxxxxxxx-test-la'
+    logicAppIdentityObjectId: '00xxxxxxxxxxxxxxxxxxxx4f6'
+    
+    apiUrl: https://someapiurl.azurewebsites.net/api/Employees/    
+  jobs:
+  - deployment: deploy_logicapp_resources
+    displayName: Deploy Logic App
+    environment: App-Test
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureResourceManagerTemplateDeployment@3
+            displayName: Create/Update API Connections
+            inputs:
+              deploymentScope: 'Resource Group'
+              azureResourceManagerConnection: $(azureServiceConnection)
+              subscriptionId: $(azureSubscription)
+              action: 'Create Or Update Resource Group'
+              resourceGroupName: $(resourceGroupName)
+              location: $(location)
+              templateLocation: 'Linked artifact'
+              csmFile: '$(pathToARMTemplates)/api-connections.bicep'
+              csmParametersFile: '$(pathToARMTemplates)/api-connections-bicep.parameters.json'
+              overrideParameters: '-logicAppIdentityObjectId $(logicAppIdentityObjectId)'
+              deploymentMode: 'Incremental'
+
+          - task: ARM Outputs@6
+            inputs:
+              ConnectedServiceNameSelector: 'ConnectedServiceNameARM'
+              ConnectedServiceNameARM: $(azureServiceConnection)
+              resourceGroupName: $(resourceGroupName)
+              prefix: 'ARM_'
+              whenLastDeploymentIsFailed: 'fail'
+                            
+          - task: AzureFunctionApp@1
+            displayName: 'Deploy logic app workflows'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              appType: 'functionApp'
+              appName: '$(logicAppName)'
+              package: '$(pathToLogicApp)'
+              deploymentMethod: 'zipDeploy'
+              appSettings: -ENVIRONMENT_NAME $(envName) -WORKFLOWS_TENANT_ID $(tenantId) -WORKFLOWS_SUBSCRIPTION_ID $(azureSubscription) -WORKFLOWS_RESOURCE_GROUP_NAME $(resourceGroupName) -WORKFLOWS_LOCATION_NAME $(location) -APIURL $(apiUrl) 
+
+          - task: AzureCLI@2
+            displayName: Set API Connection Runtime URL appsettings
+            inputs:
+              azureSubscription: 'Service Connection Name Here'
+              scriptType: 'pscore'
+              scriptLocation: 'scriptPath'
+              scriptPath: $(pathToAppSettingsPwsh)
+              arguments: '$(resourceGroupName) $(logicAppName)'
+              
+
+
+- stage: PROD
+  displayName: 'PROD Deployment'
+  variables:
+    envName: 'prod'
+    resourceGroupName: 'xxxxxxxxxxx-prod-rg'
+    logicAppName: 'xxxxxxxxxxx-prod-la'
+    logicAppSystemAssignedIdentityObjectId: '2119xxxxxxxxxxxxxxxxxxxxxxxx41d'
+    apiUrl: https://someapiurl.azurewebsites.net/api/Employees/    
+  jobs:
+  - deployment: deploy_logicapp_resources
+    displayName: Deploy Logic App
+    environment: App-Prod
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureResourceManagerTemplateDeployment@3
+            displayName: Create/Update API Connections
+            inputs:
+              deploymentScope: 'Resource Group'
+              azureResourceManagerConnection: $(azureServiceConnection)
+              subscriptionId: $(azureSubscription)
+              action: 'Create Or Update Resource Group'
+              resourceGroupName: $(resourceGroupName)
+              location: $(location)
+              templateLocation: 'Linked artifact'
+              csmFile: '$(pathToARMTemplates)/api-connections.bicep'
+              csmParametersFile: '$(pathToARMTemplates)/api-connections-bicep.parameters.json'
+              overrideParameters: '-logicAppIdentityObjectId $(logicAppIdentityObjectId)'
+              deploymentMode: 'Incremental'
+
+          - task: ARM Outputs@6
+            inputs:
+              ConnectedServiceNameSelector: 'ConnectedServiceNameARM'
+              ConnectedServiceNameARM: $(azureServiceConnection)
+              resourceGroupName: $(resourceGroupName)
+              prefix: 'ARM_'
+              whenLastDeploymentIsFailed: 'fail'
+                            
+          - task: AzureFunctionApp@1
+            displayName: 'Deploy logic app workflows'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              appType: 'functionApp'
+              appName: '$(logicAppName)'
+              package: '$(pathToLogicApp)'
+              deploymentMethod: 'zipDeploy'
+              appSettings: -ENVIRONMENT_NAME $(envName) -WORKFLOWS_TENANT_ID $(tenantId) -WORKFLOWS_SUBSCRIPTION_ID $(azureSubscription) -WORKFLOWS_RESOURCE_GROUP_NAME $(resourceGroupName) -WORKFLOWS_LOCATION_NAME $(location) -APIURL $(apiUrl) 
+
+          - task: AzureCLI@2
+            displayName: Set API Connection Runtime URL appsettings
+            inputs:
+              azureSubscription: 'Service Connection Name Here'
+              scriptType: 'pscore'
+              scriptLocation: 'scriptPath'
+              scriptPath: $(pathToAppSettingsPwsh)
+              arguments: '$(resourceGroupName) $(logicAppName)'
+

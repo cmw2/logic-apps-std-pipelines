@@ -1,0 +1,50 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+jobs:
+- job: logic_app_build
+  displayName: 'Package logic app'
+  steps:
+  - task: PowerShell@2
+    displayName: Generate API Connections Bicep files
+    inputs:
+      filePath: 'deploy/api-connections-bicep-generator.ps1'
+      arguments: './src/connections.json ./deploy/api-connections-bicep.parameters.json'
+
+  - task: PowerShell@2
+    displayName: Parameterize Connections.json
+    inputs:
+      filePath: 'deploy/api-connections-parameterize-json.ps1'
+      arguments: './src/connections.json'
+
+  - task: ArchiveFiles@2
+    displayName: 'Create project zip'
+    inputs:
+      rootFolderOrFile: '$(System.DefaultWorkingDirectory)/src'
+      includeRootFolder: false
+      archiveType: 'zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/logicapp.zip'
+      replaceExistingArchive: true
+  
+  - task: CopyFiles@2
+    displayName: 'Copy bicep templates'
+    inputs:
+      sourceFolder: 'deploy'
+      Contents: |
+        *.bicep
+        *bicep.parameters.json
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: CopyFiles@2
+    displayName: 'Copy pwsh scripts for CD'
+    inputs:
+      sourceFolder: 'deploy'
+      Contents: |
+        api-connections-set-appsettings.ps1
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - publish: '$(Build.ArtifactStagingDirectory)'
+    artifact: 'output'

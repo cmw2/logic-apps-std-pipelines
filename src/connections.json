@@ -1,0 +1,32 @@
+{
+  "managedApiConnections": {
+    "office365users": {
+      "api": {
+        "id": "/subscriptions/6f4fxxxxxxxxxxxxxxxxxxd46391/providers/Microsoft.Web/locations/centralus/managedApis/office365users"
+      },
+      "connection": {
+        "id": "/subscriptions/6f4fxxxxxxxxxxxxxxxxxxd46391/resourceGroups/xxxxx-dev-rg/providers/Microsoft.Web/connections/office365users"
+      },
+      "connectionRuntimeUrl": "https://7exxxxxxxxxxx.06.common.logic-centralus.azure-apihub.net/apim/office365users/7d4xxxxxxxxxxxx/",
+      "authentication": {
+        "type": "Raw",
+        "scheme": "Key",
+        "parameter": "@appsetting('office365users-connectionKey')"
+      }
+    },
+    "sharepointonline": {
+      "api": {
+        "id": "/subscriptions/6f4fxxxxxxxxxxxxxxxxxxd46391/providers/Microsoft.Web/locations/centralus/managedApis/sharepointonline"
+      },
+      "connection": {
+        "id": "/subscriptions/6f4fxxxxxxxxxxxxxxxxxxd46391/resourceGroups/xxxxx-dev-rg/providers/Microsoft.Web/connections/sharepointonline"
+      },
+      "connectionRuntimeUrl": "https://7exxxxxxxxxxxxxx.06.common.logic-centralus.azure-apihub.net/apim/sharepointonline/16xxxxxxxxxxxxxxxxx/",
+      "authentication": {
+        "type": "Raw",
+        "scheme": "Key",
+        "parameter": "@appsetting('sharepointonline-connectionKey')"
+      }
+    }
+  }
+}

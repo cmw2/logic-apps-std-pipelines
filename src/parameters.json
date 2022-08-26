@@ -1,0 +1,10 @@
+{
+  "responseString": {
+    "type": "string",
+    "value": "@appsetting('ENVIRONMENT_NAME')"
+  },
+  "apiUrl": {
+    "type": "string",
+    "value": "@appsetting('APIURL')"
+  }
+}
