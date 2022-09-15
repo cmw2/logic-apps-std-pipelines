@@ -42,7 +42,7 @@ stages:
             displayName: Create/Update API Connections
             inputs:
               deploymentScope: 'Resource Group'
-              azureResourceManagerConnection: $(azureServiceConnection)
+              azureResourceManagerConnection: ${{ variables.azureServiceConnection }}
               subscriptionId: $(azureSubscription)
               action: 'Create Or Update Resource Group'
               resourceGroupName: $(resourceGroupName)
@@ -56,7 +56,7 @@ stages:
           - task: ARM Outputs@6
             inputs:
               ConnectedServiceNameSelector: 'ConnectedServiceNameARM'
-              ConnectedServiceNameARM: $(azureServiceConnection)
+              ConnectedServiceNameARM: ${{ variables.azureServiceConnection }}
               resourceGroupName: $(resourceGroupName)
               prefix: 'ARM_'
               whenLastDeploymentIsFailed: 'fail'
@@ -64,7 +64,7 @@ stages:
           - task: AzureFunctionApp@1
             displayName: 'Deploy logic app workflows'
             inputs:
-              azureSubscription: $(azureServiceConnection)
+              azureSubscription: ${{ variables.azureServiceConnection }}
               appType: 'functionApp'
               appName: '$(logicAppName)'
               package: '$(pathToLogicApp)'
@@ -74,7 +74,7 @@ stages:
           - task: AzureCLI@2
             displayName: Set API Connection Runtime URL appsettings
             inputs:
-              azureSubscription: 'Service Connection Name Here'
+              azureSubscription: ${{ variables.azureServiceConnection }}
               scriptType: 'pscore'
               scriptLocation: 'scriptPath'
               scriptPath: $(pathToAppSettingsPwsh)
@@ -102,7 +102,7 @@ stages:
             displayName: Create/Update API Connections
             inputs:
               deploymentScope: 'Resource Group'
-              azureResourceManagerConnection: $(azureServiceConnection)
+              azureResourceManagerConnection: ${{ variables.azureServiceConnection }}
               subscriptionId: $(azureSubscription)
               action: 'Create Or Update Resource Group'
               resourceGroupName: $(resourceGroupName)
@@ -116,7 +116,7 @@ stages:
           - task: ARM Outputs@6
             inputs:
               ConnectedServiceNameSelector: 'ConnectedServiceNameARM'
-              ConnectedServiceNameARM: $(azureServiceConnection)
+              ConnectedServiceNameARM: ${{ variables.azureServiceConnection }}
               resourceGroupName: $(resourceGroupName)
               prefix: 'ARM_'
               whenLastDeploymentIsFailed: 'fail'
@@ -124,7 +124,7 @@ stages:
           - task: AzureFunctionApp@1
             displayName: 'Deploy logic app workflows'
             inputs:
-              azureSubscription: $(azureServiceConnection)
+              azureSubscription: ${{ variables.azureServiceConnection }}
               appType: 'functionApp'
               appName: '$(logicAppName)'
               package: '$(pathToLogicApp)'
@@ -134,7 +134,7 @@ stages:
           - task: AzureCLI@2
             displayName: Set API Connection Runtime URL appsettings
             inputs:
-              azureSubscription: 'Service Connection Name Here'
+              azureSubscription: ${{ variables.azureServiceConnection }}
               scriptType: 'pscore'
               scriptLocation: 'scriptPath'
               scriptPath: $(pathToAppSettingsPwsh)

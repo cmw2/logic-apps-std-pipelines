@@ -15,10 +15,7 @@ $mApiCons = $connectionsObj.managedApiConnections
 
 $newAuthJson = @"
 {                    
-    "type":"object",
-    "value":{
-        "type":"ManagedServiceIdentity"
-    }
+    "type":"ManagedServiceIdentity"
 }
 "@
 
@@ -35,6 +32,7 @@ foreach ($mApiCon in Get-Member -InputObject $mApiCons -membertype noteproperty)
     
     $connectionId = $mApiCons.$name.connection.id
     $connectionParts = $connectionId.Split("/")
+    $connectionName = $connectionParts[-1]
     $connectionParts[2] = "@appsetting('WORKFLOWS_SUBSCRIPTION_ID')"
     $connectionParts[4] = "@appsetting('WORKFLOWS_RESOURCE_GROUP_NAME')"
     $mApiCons.$name.connection.id = $connectionParts -Join "/"
@@ -42,7 +40,7 @@ foreach ($mApiCon in Get-Member -InputObject $mApiCons -membertype noteproperty)
     $newAuthObj = ConvertFrom-Json -InputObject $newAuthJson
     $mApiCons.$name.authentication = $newAuthObj
 
-    $mApiCons.$name.connectionRuntimeUrl = "@appsetting('$($name)_CONNECTION_RUNTIMEURL')"    
+    $mApiCons.$name.connectionRuntimeUrl = "@appsetting('$($connectionName)_CONNECTION_RUNTIMEURL')"    
 }
 
 $connectionsObj | ConvertTo-Json -Depth 10 | Out-File $outputConnectionsFilePath

@@ -28,13 +28,15 @@ $mApiCons = $connectionsObj.managedApiConnections
 foreach ($mApiCon in Get-Member -InputObject $mApiCons -membertype noteproperty)
 {
     $name = $mApiCon.Name
+    $connectionId = $mApiCons.$name.connection.id
+    $connectionName = $connectionId.Split("/")[-1]
     $apiId = $mApiCons.$name.api.id
     $connectorName = $apiId.Split("/")[-1]
     $displayName = $name
     
     $newSettingJson = @"
 {                    
-    "name": "$name",
+    "name": "$connectionName",
     "connectorName": "$connectorName",
     "displayName": "$displayName"
 }

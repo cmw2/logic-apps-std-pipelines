@@ -8,15 +8,19 @@
 param (
     [string]$resourceGroupName,
     [string]$logicAppName,
-    [string]$ARMOutputPrefix = "ARM_runtimeUrls"
+    [string]$ARMOutputPrefix = "ARM_RUNTIMEURLS"
 )
 
 $envVars = Get-ChildItem Env:
 foreach ($var in $envVars) {
+    #Write-Host "Checking $($var.Name)"
     if ($var.Name.StartsWith($ARMOutputPrefix)) {
+        Write-Host "Processing $($var.Name)"
         $varParts = $var.Name.Split("_")
         $apiConName = $varParts[-1]
         $apiUrl = $var.Value
-        az webapp config appsettings set -g $resourceGroupName -n $logicAppName --settings $($apiConName)_CONNECTION_RUNTIMEURL=$apiUrl
+        #Write-Host "Setting appsetting $($apiConName)_CONNECTION_RUNTIMEURL=""$apiUrl"""
+        Write-Host "az webapp config appsettings set -g $resourceGroupName -n $logicAppName --settings ""$($apiConName)_CONNECTION_RUNTIMEURL=$apiUrl"""
+        az webapp config appsettings set -g $resourceGroupName -n $logicAppName --settings "$($apiConName)_CONNECTION_RUNTIMEURL=$apiUrl"
     }    
 }
